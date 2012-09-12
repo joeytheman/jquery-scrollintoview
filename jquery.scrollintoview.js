@@ -172,40 +172,44 @@
 		hidden: false
 	};
 
-	$.extend($.expr[":"], {
-		scrollable: function (element, index, meta, stack) {
-			var direction = converter[typeof (meta[3]) === "string" && meta[3].toLowerCase()] || converter.both;
-			var styles = (document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle(element, null) : element.currentStyle);
-			var overflow = {
-				x: scrollValue[styles.overflowX.toLowerCase()] || false,
-				y: scrollValue[styles.overflowY.toLowerCase()] || false,
-				isRoot: rootrx.test(element.nodeName)
-			};
+    var scroll = function (element, direction) {
+        var direction = converter[typeof (direction) === "string" && direction.toLowerCase()] || converter.both;
+        var styles = (document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle(element, null) : element.currentStyle);
+        var overflow = {
+            x: scrollValue[styles.overflowX.toLowerCase()] || false,
+            y: scrollValue[styles.overflowY.toLowerCase()] || false,
+            isRoot: rootrx.test(element.nodeName)
+        };
 
-			// check if completely unscrollable (exclude HTML element because it's special)
-			if (!overflow.x && !overflow.y && !overflow.isRoot)
-			{
-				return false;
-			}
+        // check if completely unscrollable (exclude HTML element because it's special)
+        if (!overflow.x && !overflow.y && !overflow.isRoot)
+        {
+            return false;
+        }
 
-			var size = {
-				height: {
-					scroll: element.scrollHeight,
-					client: element.clientHeight
-				},
-				width: {
-					scroll: element.scrollWidth,
-					client: element.clientWidth
-				},
-				// check overflow.x/y because iPad (and possibly other tablets) don't dislay scrollbars
-				scrollableX: function () {
-					return (overflow.x || overflow.isRoot) && this.width.scroll > this.width.client;
-				},
-				scrollableY: function () {
-					return (overflow.y || overflow.isRoot) && this.height.scroll > this.height.client;
-				}
-			};
-			return direction.y && size.scrollableY() || direction.x && size.scrollableX();
-		}
-	});
+        var size = {
+            height: {
+                scroll: element.scrollHeight,
+                client: element.clientHeight
+            },
+            width: {
+                scroll: element.scrollWidth,
+                client: element.clientWidth
+            },
+            // check overflow.x/y because iPad (and possibly other tablets) don't dislay scrollbars
+            scrollableX: function () {
+                return (overflow.x || overflow.isRoot) && this.width.scroll > this.width.client;
+            },
+            scrollableY: function () {
+                return (overflow.y || overflow.isRoot) && this.height.scroll > this.height.client;
+            }
+        };
+        return direction.y && size.scrollableY() || direction.x && size.scrollableX();
+    };
+
+    $.expr[":"].scrollable = $.expr.createPseudo(function (direction) {
+            return function(element){
+                return scroll(element, direction);
+            };
+    });
 })(jQuery);
